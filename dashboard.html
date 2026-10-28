@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200, height=1920, initial-scale=1.0, user-scalable=no">
+  <title>Desk Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --card-bg: #151b23;
+      --border: #212836;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 1200px;
+      height: 1920px;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: grid;
+      /* Exact 1:3:1 ratio (20% / 60% / 20%) */
+      grid-template-rows: 1fr 3fr 1fr;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* =========================================================
+       SECTION 1: WEATHER (Top 1/5 ~ 384px)
+       ========================================================= */
+    #weather-section {
+      background: var(--card-bg);
+      border-bottom: 2px solid var(--border);
+      padding: 24px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .weather-current {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .weather-main-group {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+    }
+
+    .current-temp {
+      font-size: 88px;
+      font-weight: 300;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .current-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .current-condition {
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .current-subtext {
+      font-size: 20px;
+      color: var(--text-secondary);
+    }
+
+    .clock-group {
+      text-align: right;
+    }
+
+    .digital-clock {
+      font-size: 64px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .digital-date {
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      text-transform: capitalize;
+    }
+
+    /* 5-Day Forecast Strip */
+    .forecast-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .forecast-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .forecast-day-name {
+      font-size: 18px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .forecast-day-icon {
+      font-size: 26px;
+    }
+
+    .forecast-day-temps {
+      font-size: 19px;
+      font-weight: 500;
+    }
+
+    .temp-max { color: var(--text-primary); }
+    .temp-min { color: var(--text-secondary); margin-left: 4px; }
+
+    /* =========================================================
+       SECTION 2: RSS NEWS FEED (Middle 3/5 ~ 1152px)
+       ========================================================= */
+    #news-section {
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .section-sync {
+      font-size: 17px;
+      color: var(--text-secondary);
+    }
+
+    .news-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .news-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-left: 5px solid var(--accent);
+    }
+
+    .news-title {
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text-primary);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .news-meta {
+      font-size: 16px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 16px;
+    }
+
+    /* =========================================================
+       SECTION 3: EXCHANGE RATES (Bottom 1/5 ~ 384px)
+       ========================================================= */
+    #finance-section {
+      background: var(--card-bg);
+      padding: 26px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .finance-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      height: 100%;
+      padding-top: 10px;
+    }
+
+    .rate-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .rate-name {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .rate-value-large {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .rate-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .rate-row span strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .rate-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      width: fit-content;
+      margin-top: 4px;
+    }
+
+    .badge-usd { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+    .badge-brl { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TOP 1/5: WEATHER ================= -->
+  <section id="weather-section">
+    <div class="weather-current">
+      <div class="weather-main-group">
+        <div class="current-temp" id="curr-temp">--°</div>
+        <div class="current-meta">
+          <div class="current-condition" id="curr-cond">Cargando clima...</div>
+          <div class="current-subtext" id="curr-details">-- km/h · --% Humedad</div>
+        </div>
+      </div>
+      <div class="clock-group">
+        <div class="digital-clock" id="clock">00:00</div>
+        <div class="digital-date" id="date">--</div>
+      </div>
+    </div>
+
+    <!-- 5-Day Strip -->
+    <div class="forecast-strip" id="forecast-strip">
+      <!-- Injected via JavaScript -->
+    </div>
+  </section>
+
+  <!-- ================= MIDDLE 3/5: RSS NEWS ================= -->
+  <section id="news-section">
+    <div class="section-header">
+      <div class="section-title">
+        <div class="live-dot"></div>
+        Noticias Destacadas
+      </div>
+      <div class="section-sync" id="news-sync">Sincronizando...</div>
+    </div>
+    <div class="news-list" id="news-list">
+      <!-- Injected via JavaScript -->
+    </div>
+  </section>
+
+  <!-- ================= BOTTOM 1/5: RATES ================= -->
+  <section id="finance-section">
+    <div class="section-header" style="margin-bottom: 0;">
+      <div class="section-title">
+        Cotizaciones
+      </div>
+      <div class="section-sync" id="finance-sync">Actualizando...</div>
+    </div>
+    
+    <div class="finance-grid">
+      <!-- Dólar Blue -->
+      <div class="rate-card">
+        <div>
+          <span class="rate-badge badge-usd">USD</span>
+          <div class="rate-name" style="margin-top: 6px;">Dólar Blue</div>
+        </div>
+        <div>
+          <div class="rate-value-large" id="rate-blue-venta">$---</div>
+          <div class="rate-row">
+            <span>Compra: <strong id="rate-blue-compra">$---</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dólar MEP / Bolsa -->
+      <div class="rate-card">
+        <div>
+          <span class="rate-badge badge-usd">USD</span>
+          <div class="rate-name" style="margin-top: 6px;">Dólar MEP</div>
+        </div>
+        <div>
+          <div class="rate-value-large" id="rate-mep-venta">$---</div>
+          <div class="rate-row">
+            <span>Compra: <strong id="rate-mep-compra">$---</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dólar Oficial -->
+      <div class="rate-card">
+        <div>
+          <span class="rate-badge badge-usd">USD</span>
+          <div class="rate-name" style="margin-top: 6px;">Dólar Oficial</div>
+        </div>
+        <div>
+          <div class="rate-value-large" id="rate-oficial-venta">$---</div>
+          <div class="rate-row">
+            <span>Compra: <strong id="rate-oficial-compra">$---</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Brasileño (BRL) -->
+      <div class="rate-card">
+        <div>
+          <span class="rate-badge badge-brl">BRL</span>
+          <div class="rate-name" style="margin-top: 6px;">Real Oficial</div>
+        </div>
+        <div>
+          <div class="rate-value-large" id="rate-brl-venta">$---</div>
+          <div class="rate-row">
+            <span>Compra: <strong id="rate-brl-compra">$---</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    /* =========================================================
+       1. CLOCK & CALENDAR
+       ========================================================= */
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('date').textContent = now.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* =========================================================
+       2. WEATHER & 5-DAY FORECAST (Open-Meteo)
+       ========================================================= */
+    const weatherCodes = {
+      0: { text: "Despejado", icon: "☀️" },
+      1: { text: "Mayormente claro", icon: "🌤️" },
+      2: { text: "Parcialmente nublado", icon: "⛅" },
+      3: { text: "Nublado", icon: "☁️" },
+      45: { text: "Neblina", icon: "🌫️" },
+      48: { text: "Niebla", icon: "🌫️" },
+      51: { text: "Llovizna leve", icon: "🌦️" },
+      53: { text: "Llovizna moderada", icon: "🌦️" },
+      55: { text: "Llovizna densa", icon: "🌧️" },
+      61: { text: "Lluvia leve", icon: "🌧️" },
+      63: { text: "Lluvia moderada", icon: "🌧️" },
+      65: { text: "Lluvia fuerte", icon: "🌧️" },
+      80: { text: "Chaparrones leves", icon: "🌦️" },
+      81: { text: "Chaparrones moderados", icon: "🌧️" },
+      82: { text: "Tormentas fuertes", icon: "⛈️" },
+      95: { text: "Tormenta eléctrica", icon: "⛈️" },
+    };
+
+    async function fetchWeather() {
+      const lat = -34.52;
+      const lon = -58.56;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America%2FArgentina%2FBuenos_Aires&forecast_days=6`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const currentCode = data.current.weather_code;
+        const currentInfo = weatherCodes[currentCode] || { text: "Nublado", icon: "⛅" };
+        document.getElementById('curr-temp').textContent = `${Math.round(data.current.temperature_2m)}°`;
+        document.getElementById('curr-cond').textContent = `${currentInfo.icon} ${currentInfo.text}`;
+        document.getElementById('curr-details').textContent = `${Math.round(data.current.wind_speed_10m)} km/h · ${data.current.relative_humidity_2m}% Humedad`;
+
+        const strip = document.getElementById('forecast-strip');
+        strip.innerHTML = '';
+        const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+        for (let i = 1; i <= 5; i++) {
+          const date = new Date(data.daily.time[i] + 'T00:00:00');
+          const dayName = dayNames[date.getDay()];
+          const code = data.daily.weather_code[i];
+          const info = weatherCodes[code] || { icon: "⛅" };
+          const max = Math.round(data.daily.temperature_2m_max[i]);
+          const min = Math.round(data.daily.temperature_2m_min[i]);
+
+          const col = document.createElement('div');
+          col.className = 'forecast-day';
+          col.innerHTML = `
+            <div class="forecast-day-name">${dayName}</div>
+            <div class="forecast-day-icon">${info.icon}</div>
+            <div class="forecast-day-temps">
+              <span class="temp-max">${max}°</span>
+              <span class="temp-min">${min}°</span>
+            </div>
+          `;
+          strip.appendChild(col);
+        }
+      } catch (err) {
+        console.error("Weather error:", err);
+      }
+    }
+    fetchWeather();
+    setInterval(fetchWeather, 900000); // 15 mins
+
+    /* =========================================================
+       3. RSS NEWS (Infobae via AllOrigins raw proxy + XML Parser)
+       ========================================================= */
+    async function fetchNews() {
+      // Direct Argentina feed URL
+      const targetRss = 'https://www.infobae.com/argentina-footer/infobae/rss/';
+      // Free open-source CORS proxy returning raw XML
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetRss)}`;
+
+      try {
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error("Proxy error");
+        
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const items = xmlDoc.querySelectorAll("item");
+
+        const list = document.getElementById('news-list');
+        list.innerHTML = '';
+
+        if (!items || items.length === 0) throw new Error("Empty XML");
+
+        // Take the top 7 headlines
+        Array.from(items).slice(0, 7).forEach(item => {
+          const title = item.querySelector("title")?.textContent || "Sin título";
+          const pubDateStr = item.querySelector("pubDate")?.textContent;
+          let timeString = "--:--";
+
+          if (pubDateStr) {
+            const pubDate = new Date(pubDateStr);
+            if (!isNaN(pubDate)) {
+              timeString = pubDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+          }
+
+          const card = document.createElement('div');
+          card.className = 'news-card';
+          card.innerHTML = `
+            <div class="news-title">${title}</div>
+            <div class="news-meta">
+              <span>${timeString}</span>
+              <span>•</span>
+              <span>Infobae</span>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+
+        const syncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('news-sync').textContent = `Actualizado ${syncTime}`;
+      } catch (err) {
+        console.error("RSS parse error:", err);
+        document.getElementById('news-sync').textContent = 'Reintentando feed...';
+      }
+    }
+    fetchNews();
+    setInterval(fetchNews, 600000); // 10 mins
+
+    /* =========================================================
+       4. EXCHANGE RATES (DolarApi with fallback endpoints)
+       ========================================================= */
+    async function fetchRates() {
+      try {
+        // Fetch USD
+        const resUSD = await fetch('https://dolarapi.com/v1/dolares');
+        const dolares = await resUSD.json();
+
+        const blue = dolares.find(d => d.casa.toLowerCase().includes('blue'));
+        const oficial = dolares.find(d => d.casa.toLowerCase().includes('oficial'));
+        const mep = dolares.find(d => d.casa.toLowerCase().includes('bolsa') || d.casa.toLowerCase().includes('mep'));
+
+        if (blue) {
+          document.getElementById('rate-blue-venta').textContent = `$${Math.round(blue.venta)}`;
+          document.getElementById('rate-blue-compra').textContent = `$${Math.round(blue.compra)}`;
+        }
+        if (mep) {
+          document.getElementById('rate-mep-venta').textContent = `$${Math.round(mep.venta)}`;
+          document.getElementById('rate-mep-compra').textContent = `$${Math.round(mep.compra)}`;
+        }
+        if (oficial) {
+          document.getElementById('rate-oficial-venta').textContent = `$${Math.round(oficial.venta)}`;
+          document.getElementById('rate-oficial-compra').textContent = `$${Math.round(oficial.compra)}`;
+        }
+
+        // Fetch BRL
+        const resBRL = await fetch('https://dolarapi.com/v1/cotizaciones/brl');
+        const brl = await resBRL.json();
+        if (brl && brl.venta) {
+          document.getElementById('rate-brl-venta').textContent = `$${brl.venta.toFixed(1)}`;
+          document.getElementById('rate-brl-compra').textContent = `$${brl.compra.toFixed(1)}`;
+        }
+
+        const syncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('finance-sync').textContent = `Actualizado ${syncTime}`;
+      } catch (err) {
+        console.error("Rates fetch error:", err);
+        document.getElementById('finance-sync').textContent = 'Sin conexión';
+      }
+    }
+    fetchRates();
+    setInterval(fetchRates, 600000); // 10 mins
+  </script>
+</body>
+</html>
