@@ -474,61 +474,95 @@
     setInterval(fetchWeather, 900000); // 15 mins
 
     /* =========================================================
-       3. RSS NEWS (Infobae via AllOrigins raw proxy + XML Parser)
-       ========================================================= */
-    async function fetchNews() {
-      // Direct Argentina feed URL
-      const targetRss = 'https://www.infobae.com/argentina-footer/infobae/rss/';
-      // Free open-source CORS proxy returning raw XML
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetRss)}`;
+   3. RSS NEWS (Multi-proxy with Argentina Top Headlines)
+   ========================================================= */
+async function fetchNews() {
+  const syncEl = document.getElementById('news-sync');
+  syncEl.textContent = 'Actualizando...';
 
-      try {
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error("Proxy error");
-        
-        const xmlText = await res.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-        const items = xmlDoc.querySelectorAll("item");
+  // Primary: Google News Argentina (aggregates Infobae, Clarín, etc. - 0 bot blocking)
+  // Alternative: 'https://www.infobae.com/argentina-footer/infobae/rss/'
+  const rssTarget = 'https://news.google.com/rss?hl=es-419&gl=AR&ceid=AR:es-419';
 
-        const list = document.getElementById('news-list');
-        list.innerHTML = '';
+  // Array of public CORS proxies to try in sequence
+  const proxyEndpoints = [
+    `https://corsproxy.io/?url=${encodeURIComponent(rssTarget)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssTarget)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(rssTarget)}`
+  ];
 
-        if (!items || items.length === 0) throw new Error("Empty XML");
+  let xmlText = null;
 
-        // Take the top 7 headlines
-        Array.from(items).slice(0, 7).forEach(item => {
-          const title = item.querySelector("title")?.textContent || "Sin título";
-          const pubDateStr = item.querySelector("pubDate")?.textContent;
-          let timeString = "--:--";
-
-          if (pubDateStr) {
-            const pubDate = new Date(pubDateStr);
-            if (!isNaN(pubDate)) {
-              timeString = pubDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
-          }
-
-          const card = document.createElement('div');
-          card.className = 'news-card';
-          card.innerHTML = `
-            <div class="news-title">${title}</div>
-            <div class="news-meta">
-              <span>${timeString}</span>
-              <span>•</span>
-              <span>Infobae</span>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-
-        const syncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('news-sync').textContent = `Actualizado ${syncTime}`;
-      } catch (err) {
-        console.error("RSS parse error:", err);
-        document.getElementById('news-sync').textContent = 'Reintentando feed...';
+  for (const proxy of proxyEndpoints) {
+    try {
+      const res = await fetch(proxy, { cache: "no-store" });
+      if (res.ok) {
+        const text = await res.text();
+        // Basic check to ensure we received actual XML and not a Cloudflare HTML error
+        if (text.includes('<item') || text.includes('<entry')) {
+          xmlText = text;
+          break;
+        }
       }
+    } catch (e) {
+      console.warn(`Proxy failed: ${proxy}`, e);
     }
+  }
+
+  if (!xmlText) {
+    syncEl.textContent = 'Error de conexión';
+    return;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const items = xmlDoc.querySelectorAll("item");
+    const list = document.getElementById('news-list');
+    list.innerHTML = '';
+
+    if (!items || items.length === 0) throw new Error("No items found");
+
+    Array.from(items).slice(0, 7).forEach(item => {
+      let rawTitle = item.querySelector("title")?.textContent || "Sin título";
+      
+      // Clean up Google News format ("Headline - Source Name")
+      let sourceName = "Actualidad";
+      if (rawTitle.includes(" - ")) {
+        const parts = rawTitle.split(" - ");
+        sourceName = parts.pop();
+        rawTitle = parts.join(" - ");
+      }
+
+      const pubDateStr = item.querySelector("pubDate")?.textContent;
+      let timeString = "--:--";
+      if (pubDateStr) {
+        const pubDate = new Date(pubDateStr);
+        if (!isNaN(pubDate)) {
+          timeString = pubDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+      }
+
+      const card = document.createElement('div');
+      card.className = 'news-card';
+      card.innerHTML = `
+        <div class="news-title">${rawTitle}</div>
+        <div class="news-meta">
+          <span>${timeString}</span>
+          <span>•</span>
+          <span>${sourceName}</span>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    const syncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    syncEl.textContent = `Actualizado ${syncTime}`;
+  } catch (err) {
+    console.error("XML parse error:", err);
+    syncEl.textContent = 'Error al procesar noticias';
+  }
+}
     fetchNews();
     setInterval(fetchNews, 600000); // 10 mins
 
